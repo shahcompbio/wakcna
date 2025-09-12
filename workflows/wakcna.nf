@@ -4,6 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { CLAIR3                 } from '../modules/nf-core/clair3/main'
+include { LONGPHASE_PHASE        } from '../modules/nf-core/longphase/phase/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -36,9 +37,14 @@ workflow WAKCNA {
     clair_input_ch = bam_ch.norm.map { meta, bam, bai ->
         tuple(meta, bam, bai, params.clair3_model, [], params.clair3_platform)
     }
-    clair_input_ch.view()
     CLAIR3(clair_input_ch, [[id: "ref"], params.fasta], [[id: "ref"], params.fai])
-
+    // run longphase to phase SNPs
+    longphase_input_ch = bam_ch.norm
+        .join(CLAIR3.out.vcf, by: 0)
+        .map { meta, bam, bai, vcf ->
+            tuple(meta, bam, bai, vcf, [], [])
+        }
+    LONGPHASE_PHASE(longphase_input_ch, [[id: "ref"], params.fasta], [[id: "ref"], params.fai])
     //
     // Collate and save software versions
     //

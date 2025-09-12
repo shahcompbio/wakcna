@@ -246,6 +246,18 @@
                     "default": "ont"
                 }
             }
+        },
+        "longphase_options": {
+            "title": "longphase options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "longphase_platform": {
+                    "type": "string",
+                    "default": "--ont"
+                }
+            }
         }
     },
     "allOf": [
@@ -263,6 +275,9 @@
         },
         {
             "$ref": "#/$defs/clair3_options"
+        },
+        {
+            "$ref": "#/$defs/longphase_options"
         }
     ]
 }
