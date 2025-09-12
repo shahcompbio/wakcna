@@ -5,6 +5,7 @@
 */
 include { CLAIR3                 } from '../modules/nf-core/clair3/main'
 include { LONGPHASE_PHASE        } from '../modules/nf-core/longphase/phase/main'
+include { WAKHAN_HAPCORRECT      } from '../modules/local/wakhan/hapcorrect/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -45,6 +46,13 @@ workflow WAKCNA {
             tuple(meta, bam, bai, vcf, [], [])
         }
     LONGPHASE_PHASE(longphase_input_ch, [[id: "ref"], params.fasta], [[id: "ref"], params.fai])
+    // phase correct tumor bam using phased SNPs
+    hapcorrect_input_ch = bam_ch.tumor
+        .map { meta, bam, bai -> tuple(meta.id, meta, bam) }
+        .join(LONGPHASE_PHASE.out.vcf.map { meta, vcf -> tuple(meta.id, meta, vcf) }, by: 0)
+        .map { id, tumor_meta, bam, norm_meta, vcf -> tuple(tumor_meta, bam, vcf) }
+    hapcorrect_input_ch.view()
+    WAKHAN_HAPCORRECT([[id: "ref"], params.fasta], hapcorrect_input_ch)
     //
     // Collate and save software versions
     //
