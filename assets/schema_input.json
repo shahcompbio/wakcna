@@ -32,7 +32,7 @@
                 "pattern": "^\\S+$",
                 "errorMessage": "specify condition (i.e., tumor or normal) and cannot contain spaces",
                 "meta": ["condition"]
-            },
+            }
         },
         "required": ["sample", "bam", "bai", "condition"]
     }
