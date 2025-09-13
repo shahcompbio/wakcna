@@ -5,9 +5,7 @@ process WAKHAN_HAPCORRECT {
 
     // TODO nf-core: See section in main README for further information regarding finding and adding container addresses to the section below.
     conda "${moduleDir}/environment.yml"
-    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
-        ? 'https://depot.galaxyproject.org/singularity/wakhan:0.1.2--pyhdfd78af_0'
-        : 'biocontainers/wakhan:0.1.2--pyhdfd78af_0'}"
+    container "quay.io/shahlab_singularity/wakhan:364f3e6"
 
     input:
     tuple val(meta), path(ref_fasta)
@@ -15,7 +13,8 @@ process WAKHAN_HAPCORRECT {
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
-    tuple val(meta1), path("**/rephased.vcf.gz"), emit: rephased_vcf
+    tuple val(meta1), path("${meta1.id}_${meta.condition}_hapcorrect"), emit: wakhanHPOutput
+    tuple val(meta1), path("**/rephased.vcf.gz"), emit: rephased_vcf, optional: true
     // TODO nf-core: List additional required output channels/values here
     path "versions.yml", emit: versions
 
@@ -26,6 +25,7 @@ process WAKHAN_HAPCORRECT {
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
+    tabix ${phased_vcf}
     wakhan \\
         hapcorrect \\
         ${args} \\
@@ -33,11 +33,12 @@ process WAKHAN_HAPCORRECT {
         --reference ${ref_fasta}  \\
         --target-bam ${bam} \\
         --normal-phased-vcf ${phased_vcf} \\
-        --genome-name ${meta1.sample}
+        --genome-name ${meta1.id} \\
+        --out-dir-plots ${meta1.id}_${meta.condition}_hapcorrect
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        wakhan: 0.1.2
+        wakhan: 0.2.0
     END_VERSIONS
     """
 
