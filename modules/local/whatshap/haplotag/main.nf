@@ -10,9 +10,9 @@ process WHATSHAP_HAPLOTAG {
         : 'biocontainers/whatshap:2.8--py39h2de1943_0'}"
 
     input:
-    tuple val(meta), path(ref_fasta)
-    tuple val(meta2), path(ref_fai)
-    tuple val(meta3), path(phased_vcf), path(bam), path(bai)
+    path ref_fasta
+    path ref_fai
+    tuple val(meta), path(bam), path(bai), path(vcf), path(vcf_tbi)
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
@@ -25,7 +25,7 @@ process WHATSHAP_HAPLOTAG {
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
+    def prefix = task.ext.prefix ?: "${meta.id}.${meta.condition}"
     // TODO nf-core: Where possible, a command MUST be provided to obtain the version number of the software e.g. 1.10
     //               If the software is unable to output a version number on the command-line then it can be manually specified
     //               e.g. https://github.com/nf-core/modules/blob/master/modules/nf-core/homer/annotatepeaks/main.nf
@@ -36,12 +36,16 @@ process WHATSHAP_HAPLOTAG {
     // TODO nf-core: Please replace the example samtools command below with your module's command
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
     """
-    whatshap \\
+    whatshap haplotag \\
         ${args} \\
-        -@ ${task.cpus} \\
-        -o ${prefix}.bam \\
-        ${bam}
-
+        --reference ${ref_fasta} \\
+        ${vcf} \\
+        ${bam} \\
+        -o ${prefix}.haplotagged.bam \\
+        --ignore-read-groups \\
+        --tag-supplementary \\
+        --skip-missing-contigs \\
+        --output-threads ${task.cpus}
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         whatshap: \$(whatshap --version)

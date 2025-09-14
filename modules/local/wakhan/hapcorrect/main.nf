@@ -36,9 +36,16 @@ process WAKHAN_HAPCORRECT {
         --genome-name ${meta1.id} \\
         --out-dir-plots ${meta1.id}_hapcorrect
 
+    WAKHAN_VERSION=\$(python3 -c "
+    import sys
+    sys.path.insert(0, '/opt/wakhan/Wakhan')
+    from src.__version__ import __version__
+    print(__version__)
+    ")
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        wakhan: 0.2.0
+        wakhan: \$WAKHAN_VERSION
     END_VERSIONS
     """
 
