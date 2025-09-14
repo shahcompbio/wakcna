@@ -9,4 +9,4 @@ nextflow run ${pipelinedir}/main.nf \
     -profile docker,arm,test \
     -work-dir ${outdir}/work \
     --outdir ${outdir} \
-   # -resume
+    -resume

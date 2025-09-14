@@ -13,7 +13,7 @@ process WAKHAN_HAPCORRECT {
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
-    tuple val(meta1), path("${meta1.id}_${meta.condition}_hapcorrect"), emit: wakhanHPOutput
+    tuple val(meta1), path("${meta1.id}_hapcorrect"), emit: wakhanHPOutput
     tuple val(meta1), path("**/rephased.vcf.gz"), emit: rephased_vcf, optional: true
     // TODO nf-core: List additional required output channels/values here
     path "versions.yml", emit: versions
@@ -34,7 +34,7 @@ process WAKHAN_HAPCORRECT {
         --target-bam ${bam} \\
         --normal-phased-vcf ${phased_vcf} \\
         --genome-name ${meta1.id} \\
-        --out-dir-plots ${meta1.id}_${meta.condition}_hapcorrect
+        --out-dir-plots ${meta1.id}_hapcorrect
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

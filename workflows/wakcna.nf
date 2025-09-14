@@ -6,6 +6,7 @@
 include { CLAIR3                 } from '../modules/nf-core/clair3/main'
 include { LONGPHASE_PHASE        } from '../modules/nf-core/longphase/phase/main'
 include { WAKHAN_HAPCORRECT      } from '../modules/local/wakhan/hapcorrect/main'
+include { TABIX_TABIX            } from '../modules/nf-core/tabix/tabix/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -53,6 +54,15 @@ workflow WAKCNA {
         .map { id, tumor_meta, bam, norm_meta, vcf -> tuple(tumor_meta, bam, vcf) }
     hapcorrect_input_ch.view()
     WAKHAN_HAPCORRECT([[id: "ref"], params.fasta], hapcorrect_input_ch)
+    // tabix rephased vcf if it exists
+    rephased_vcf_ch = WAKHAN_HAPCORRECT.out.rephased_vcf
+        .mix(LONGPHASE_PHASE.out.vcf)
+        .first()
+    rephased_vcf_ch.view()
+    // TABIX_TABIX(rephased_vcf_ch)
+    // // run whatshap haplotag to tag both tumor and normal bams
+    // hap_vcf_ch = rephased_vcf_ch.join(TABIX_TABIX.out.tbi, by: 0)
+    // hap_vcf_ch.view()
     //
     // Collate and save software versions
     //
