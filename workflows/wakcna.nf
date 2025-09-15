@@ -8,6 +8,8 @@ include { LONGPHASE_PHASE        } from '../modules/nf-core/longphase/phase/main
 include { WAKHAN_HAPCORRECT      } from '../modules/local/wakhan/hapcorrect/main'
 include { TABIX_TABIX            } from '../modules/nf-core/tabix/tabix/main'
 include { WHATSHAP_HAPLOTAG      } from '../modules/local/whatshap/haplotag/main'
+include { SAMTOOLS_INDEX         } from '../modules/nf-core/samtools/index/main'
+include { SEVERUS                } from '../modules/nf-core/severus/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -61,10 +63,8 @@ workflow WAKCNA {
     rephased_vcf_ch = WAKHAN_HAPCORRECT.out.rephased_vcf
         .mix(LONGPHASE_PHASE.out.vcf)
         .first()
-    rephased_vcf_ch.view()
     TABIX_TABIX(rephased_vcf_ch)
     ch_versions = ch_versions.mix(TABIX_TABIX.out.versions)
-    TABIX_TABIX.out.tbi.view()
     // run whatshap haplotag to tag both tumor and normal bams
     hap_vcf_ch = ch_samplesheet
         .map { meta, bam, bai -> tuple(meta.id, meta, bam, bai) }
@@ -79,9 +79,28 @@ workflow WAKCNA {
         .map { id, bam_meta, bam, bai, vcf_meta, vcf, tbi_meta, tbi ->
             tuple(bam_meta, bam, bai, vcf, tbi)
         }
-    hap_vcf_ch.view()
     WHATSHAP_HAPLOTAG(params.fasta, params.fai, hap_vcf_ch)
     ch_versions = ch_versions.mix(WHATSHAP_HAPLOTAG.out.versions)
+    // index haplotagged bams
+    SAMTOOLS_INDEX(WHATSHAP_HAPLOTAG.out.bam)
+    ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions)
+    // run severus to call somatic SVs
+    // branch to tumor vs normal
+    hap_bam_ch = WHATSHAP_HAPLOTAG.out.bam
+        .join(SAMTOOLS_INDEX.out.bai, by: 0)
+        .branch { meta, bam, bai ->
+            tumor: meta.condition == 'tumor'
+            norm: meta.condition == 'normal'
+        }
+    severus_in_ch = hap_bam_ch.tumor
+        .map { meta, bam, bai -> tuple(meta.id, meta, bam, bai) }
+        .join(hap_bam_ch.norm.map { meta, bam, bai -> tuple(meta.id, meta, bam, bai) }, by: 0)
+        .join(rephased_vcf_ch.map { meta, vcf -> tuple(meta.id, meta, vcf) }, by: 0)
+        .map { id, tumor_meta, tumor_bam, tumor_bai, norm_meta, norm_bam, norm_bai, meta3, vcf ->
+            tuple([id: id], tumor_bam, tumor_bai, norm_bam, norm_bai, vcf)
+        }
+    SEVERUS(severus_in_ch, [[id: "ref"], params.vntr_bed])
+    ch_versions = ch_versions.mix(SEVERUS.out.versions)
     //
     // Collate and save software versions
     //

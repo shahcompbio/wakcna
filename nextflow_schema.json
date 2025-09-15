@@ -258,6 +258,18 @@
                     "default": "--ont"
                 }
             }
+        },
+        "severus_options": {
+            "title": "Severus options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "vntr_bed": {
+                    "type": "string",
+                    "description": "bed file for tandem repeat regions in ref genome"
+                }
+            }
         }
     },
     "allOf": [
@@ -278,6 +290,9 @@
         },
         {
             "$ref": "#/$defs/longphase_options"
+        },
+        {
+            "$ref": "#/$defs/severus_options"
         }
     ]
 }
