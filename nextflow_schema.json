@@ -270,6 +270,22 @@
                     "description": "bed file for tandem repeat regions in ref genome"
                 }
             }
+        },
+        "wakhan_options": {
+            "title": "Wakhan options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "binsize": {
+                    "type": "integer",
+                    "default": 10000
+                },
+                "contigs": {
+                    "type": "string",
+                    "default": "chr1-22,chrX,chrY"
+                }
+            }
         }
     },
     "allOf": [
@@ -293,6 +309,9 @@
         },
         {
             "$ref": "#/$defs/severus_options"
+        },
+        {
+            "$ref": "#/$defs/wakhan_options"
         }
     ]
 }

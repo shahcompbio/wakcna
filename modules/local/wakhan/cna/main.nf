@@ -22,10 +22,12 @@ process WAKHAN_CNA {
 
     script:
     def args = task.ext.args ?: ''
+    def args1 = task.ext.args1 ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     wakhan cna \\
         ${args} \\
+        ${args1} \\
         --threads ${task.cpus} \\
         --reference ${ref_fasta} \\
         --target-bam ${bam} \\
