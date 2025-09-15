@@ -10,6 +10,7 @@ include { TABIX_TABIX            } from '../modules/nf-core/tabix/tabix/main'
 include { WHATSHAP_HAPLOTAG      } from '../modules/local/whatshap/haplotag/main'
 include { SAMTOOLS_INDEX         } from '../modules/nf-core/samtools/index/main'
 include { SEVERUS                } from '../modules/nf-core/severus/main'
+include { WAKHAN_CNA             } from '../modules/local/wakhan/cna/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -66,7 +67,7 @@ workflow WAKCNA {
     TABIX_TABIX(rephased_vcf_ch)
     ch_versions = ch_versions.mix(TABIX_TABIX.out.versions)
     // run whatshap haplotag to tag both tumor and normal bams
-    hap_vcf_ch = ch_samplesheet
+    hap_input_ch = ch_samplesheet
         .map { meta, bam, bai -> tuple(meta.id, meta, bam, bai) }
         .combine(
             rephased_vcf_ch.map { meta, vcf -> tuple(meta.id, meta, vcf) },
@@ -79,7 +80,7 @@ workflow WAKCNA {
         .map { id, bam_meta, bam, bai, vcf_meta, vcf, tbi_meta, tbi ->
             tuple(bam_meta, bam, bai, vcf, tbi)
         }
-    WHATSHAP_HAPLOTAG(params.fasta, params.fai, hap_vcf_ch)
+    WHATSHAP_HAPLOTAG(params.fasta, params.fai, hap_input_ch)
     ch_versions = ch_versions.mix(WHATSHAP_HAPLOTAG.out.versions)
     // index haplotagged bams
     SAMTOOLS_INDEX(WHATSHAP_HAPLOTAG.out.bam)
@@ -101,6 +102,24 @@ workflow WAKCNA {
         }
     SEVERUS(severus_in_ch, [[id: "ref"], params.vntr_bed])
     ch_versions = ch_versions.mix(SEVERUS.out.versions)
+    // run wakhan cna
+    cna_input_ch = hap_input_ch
+        .branch { meta, bam, bai, vcf, tbi ->
+            tumor: meta.condition == 'tumor'
+        }
+        .map { meta, bam, bai, vcf, tbi ->
+            tuple([id: meta.id], bam, bai, vcf, tbi)
+        }
+        .join(SEVERUS.out.somatic_vcf, by: 0)
+        .join(
+            WAKHAN_HAPCORRECT.out.wakhanHPOutput.map { meta, path ->
+                tuple([id: meta.id], path)
+            },
+            by: 0
+        )
+    cna_input_ch.view()
+    WAKHAN_CNA(cna_input_ch, params.fasta)
+    ch_versions = ch_versions.mix(WAKHAN_CNA.out.versions)
     //
     // Collate and save software versions
     //
