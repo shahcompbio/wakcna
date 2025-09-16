@@ -287,9 +287,9 @@
                     "default": "chr1-22,chrX,chrY",
                     "description": "contigs to use in analysis"
                 },
-                "genes": {
+                "cosmic_genes": {
                     "type": "string",
-                    "description": "custom input gene list to highlight in CNA"
+                    "description": "Provide a path to a bed file of cosmic cancer genes (see Wakhan docs)"
                 }
             }
         }
