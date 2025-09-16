@@ -26,7 +26,6 @@ process WAKHAN_CNA {
     def args2 = task.ext.args2 ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    mkdir -p ${prefix}_cna
     wakhan cna \\
         ${args} \\
         ${args1} \\
@@ -38,7 +37,12 @@ process WAKHAN_CNA {
         --genome-name ${meta.id} \\
         --breakpoints ${severus_vcf} \\
         --use-sv-haplotypes \\
-        --out-dir-plots ${prefix}_cna
+        --out-dir-plots .
+
+    mkdir -p ${prefix}_cna
+    find . -mindepth 1 -maxdepth 1 -type d ! -name '${prefix}_cna' -print0 | xargs -0 -I {} mv "{}" ${prefix}_cna/
+    find . -maxdepth 1 -type f -name "*.html" -print0 | xargs -0 -I {} mv "{}" ${prefix}_cna/
+    mv solutions_rank.tsv ${prefix}_cna/
 
     WAKHAN_VERSION=\$(python3 -c "
     import sys
