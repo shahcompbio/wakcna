@@ -42,7 +42,7 @@ process WAKHAN_CNA {
     mkdir -p ${prefix}_cna
     find . -mindepth 1 -maxdepth 1 -type d ! -name '${prefix}_cna' -print0 | xargs -0 -I {} mv "{}" ${prefix}_cna/
     find . -maxdepth 1 -type f -name "*.html" -print0 | xargs -0 -I {} mv "{}" ${prefix}_cna/
-    mv solutions_rank.tsv ${prefix}_cna/
+    mv solutions_ranks.tsv ${prefix}_cna/
 
     WAKHAN_VERSION=\$(python3 -c "
     import sys
