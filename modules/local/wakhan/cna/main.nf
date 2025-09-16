@@ -31,7 +31,7 @@ process WAKHAN_CNA {
         --threads ${task.cpus} \\
         --reference ${ref_fasta} \\
         --target-bam ${bam} \\
-        --tumor-phased-vcf ${phased_vcf} \\
+        --normal-phased-vcf ${phased_vcf} \\
         --genome-name ${meta.id} \\
         --breakpoints ${severus_vcf} \\
         --use-sv-haplotypes \\

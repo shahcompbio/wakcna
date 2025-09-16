@@ -62,8 +62,9 @@ workflow WAKCNA {
     ch_versions = ch_versions.mix(WAKHAN_HAPCORRECT.out.versions)
     // tabix rephased vcf if it exists
     rephased_vcf_ch = WAKHAN_HAPCORRECT.out.rephased_vcf
-        .mix(LONGPHASE_PHASE.out.vcf)
+        .concat(LONGPHASE_PHASE.out.vcf)
         .first()
+    rephased_vcf_ch.view()
     TABIX_TABIX(rephased_vcf_ch)
     ch_versions = ch_versions.mix(TABIX_TABIX.out.versions)
     // run whatshap haplotag to tag both tumor and normal bams
