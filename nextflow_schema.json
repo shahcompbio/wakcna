@@ -279,11 +279,17 @@
             "properties": {
                 "binsize": {
                     "type": "integer",
-                    "default": 10000
+                    "default": 10000,
+                    "description": "size of genome bins"
                 },
                 "contigs": {
                     "type": "string",
-                    "default": "chr1-22,chrX,chrY"
+                    "default": "chr1-22,chrX,chrY",
+                    "description": "contigs to use in analysis"
+                },
+                "genes": {
+                    "type": "string",
+                    "description": "custom input gene list to highlight in CNA"
                 }
             }
         }
