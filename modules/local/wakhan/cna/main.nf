@@ -26,6 +26,7 @@ process WAKHAN_CNA {
     def args2 = task.ext.args2 ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
+    mkdir -p ${prefix}_cna
     wakhan cna \\
         ${args} \\
         ${args1} \\
