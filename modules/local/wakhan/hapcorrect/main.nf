@@ -23,12 +23,16 @@ process WAKHAN_HAPCORRECT {
 
     script:
     def args = task.ext.args ?: ''
+    def args1 = task.ext.args1 ?: ''
+    def args2 = task.ext.args2 ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     tabix ${phased_vcf}
     wakhan \\
         hapcorrect \\
         ${args} \\
+        ${args1} \\
+        ${args2} \\
         --threads ${task.cpus} \\
         --reference ${ref_fasta}  \\
         --target-bam ${bam} \\
