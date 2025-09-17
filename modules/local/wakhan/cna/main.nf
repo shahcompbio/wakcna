@@ -2,6 +2,7 @@
 process WAKHAN_CNA {
     tag "${meta.id}"
     label 'process_high'
+    stageInMode 'copy'
 
     // TODO nf-core: See section in main README for further information regarding finding and adding container addresses to the section below.
     conda "${moduleDir}/environment.yml"
