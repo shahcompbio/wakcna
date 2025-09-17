@@ -5,7 +5,7 @@ process WAKHAN_HAPCORRECT {
 
     // TODO nf-core: See section in main README for further information regarding finding and adding container addresses to the section below.
     conda "${moduleDir}/environment.yml"
-    container "quay.io/shahlab_singularity/wakhan:364f3e6"
+    container "quay.io/shahlab_singularity/wakhan:94effdd"
 
     input:
     tuple val(meta), path(ref_fasta)
