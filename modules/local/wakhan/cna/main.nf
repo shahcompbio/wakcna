@@ -3,6 +3,7 @@ process WAKHAN_CNA {
     tag "${meta.id}"
     label 'process_high'
     stageInMode 'copy'
+    publishDir "wakhan/${meta.id}", mode: 'copy', overwrite: true, saveAs: { filename -> filename.startsWith("solution_") ? "cna_solutions/${filename}" : filename }
 
     // TODO nf-core: See section in main README for further information regarding finding and adding container addresses to the section below.
     conda "${moduleDir}/environment.yml"
@@ -14,7 +15,12 @@ process WAKHAN_CNA {
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
-    tuple val(meta), path("${meta.id}_cna"), emit: cna_out
+    tuple val(meta), path("solutions_ranks.tsv"), emit: solutions_ranks
+    tuple val(meta), path("solution_*", arity: '1..*'), emit: wakhanCNAOutput
+    tuple val(meta), path("coverage_plots"), emit: coverage_plots
+    tuple val(meta), path("*_ploidy_purity.html"), emit: ploidy_purity_html
+    tuple val(meta), path("*_optimized_peak.html"), emit: optimized_peak_html
+
     // TODO nf-core: List additional required output channels/values here
     path "versions.yml", emit: versions
 
@@ -39,11 +45,6 @@ process WAKHAN_CNA {
         --breakpoints ${severus_vcf} \\
         --use-sv-haplotypes \\
         --out-dir-plots .
-
-    mkdir -p ${prefix}_cna
-    find . -mindepth 1 -maxdepth 1 -type d ! -name '${prefix}_cna' -print0 | xargs -0 -I {} mv "{}" ${prefix}_cna/
-    find . -maxdepth 1 -type f -name "*.html" -print0 | xargs -0 -I {} mv "{}" ${prefix}_cna/
-    mv solutions_ranks.tsv ${prefix}_cna/
 
     WAKHAN_VERSION=\$(python3 -c "
     import sys

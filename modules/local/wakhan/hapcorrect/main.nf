@@ -3,7 +3,7 @@ process WAKHAN_HAPCORRECT {
     tag "${meta1.id}"
     label 'process_high'
     stageInMode 'copy'
-
+    publishDir "wakhan/${meta1.id}", mode: 'copy', overwrite: true
     // TODO nf-core: See section in main README for further information regarding finding and adding container addresses to the section below.
     conda "${moduleDir}/environment.yml"
     container "quay.io/shahlab_singularity/wakhan:94effdd"
@@ -14,7 +14,7 @@ process WAKHAN_HAPCORRECT {
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
-    tuple val(meta1), path("${meta1.id}_hapcorrect/*", arity: '3..*'), emit: wakhanHPOutput
+    tuple val(meta1), path("hapcorrect_out/*", arity: '3..*'), emit: wakhanHPOutput
     tuple val(meta1), path("**/rephased.vcf.gz"), emit: rephased_vcf, optional: true
     // TODO nf-core: List additional required output channels/values here
     path "versions.yml", emit: versions
@@ -39,7 +39,7 @@ process WAKHAN_HAPCORRECT {
         --target-bam ${bam} \\
         --normal-phased-vcf ${phased_vcf} \\
         --genome-name ${meta1.id} \\
-        --out-dir-plots ${meta1.id}_hapcorrect
+        --out-dir-plots hapcorrect_out
 
     WAKHAN_VERSION=\$(python3 -c "
     import sys
